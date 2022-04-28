@@ -1,95 +1,47 @@
-package com.treespond.core.filters;
+package com.treespond.core.interceptors;
 
-import com.treespond.core.beans.OXSession;
-import com.treespond.core.controller.SecurityController;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.support.WebApplicationContextUtils;
-import org.springframework.web.filter.GenericFilterBean;
+  import com.treespond.core.beans.OXUser;
+  import com.treespond.core.security.IOXSecurity;
+  import org.slf4j.Logger;
+  import org.slf4j.LoggerFactory;
+  import org.springframework.beans.factory.annotation.Autowired;
+  import org.springframework.http.HttpRequest;
+  import org.springframework.http.MediaType;
+  import org.springframework.http.client.ClientHttpRequestExecution;
+  import org.springframework.http.client.ClientHttpRequestInterceptor;
+  import org.springframework.http.client.ClientHttpResponse;
+  import org.springframework.stereotype.Component;
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-import java.io.IOException;
+  import java.io.IOException;
 
-public class OXSessionFilter  extends GenericFilterBean {
+  @Component
+public class BearerHttpInterseptor implements ClientHttpRequestInterceptor {
 
-    private static final Logger logger = LoggerFactory.getLogger(SecurityController.class);
+    private static final Logger logger = LoggerFactory.getLogger(BearerHttpInterseptor.class);
 
+    @Autowired
+    IOXSecurity sec;
 
+    public BearerHttpInterseptor() {
 
-    public static final String OXSESSION="OXSESSION";
-    public static final String REFFERAL_CODE="refCode";
-    public static final String BONUS_CODE="bonusCode";
-    public static final String GIFT_CODE="giftCode";
-    public static final String REFFERAL_ID="refId";
-
-//     @Autowired
-    private OXSession oxsesion;
+    }
 
     @Override
-    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+    public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
 
-
-
-
-            HttpSession session = ((HttpServletRequest)servletRequest).getSession(true);
-
-            if(session==null) return;
-
-            if(session.getAttribute(OXSESSION)==null){
-                ServletContext servletContext = servletRequest.getServletContext();
-                WebApplicationContext webApplicationContext = WebApplicationContextUtils.getWebApplicationContext(servletContext);
-                oxsesion =  new OXSession();
-
-                session.setAttribute(OXSESSION,oxsesion);
-            }
-                oxsesion = (OXSession) session.getAttribute(OXSESSION);
-
-
-
-        logger.info("OX Session Filter was called");
-
-
-        if(oxsesion!=null){
-
-            logger.info("what we have in oxsession: "+oxsesion.toString());
+        if(sec.isUserAuthenticated()){
+            OXUser u = sec.getCurrentUser();
+            String accessToken= u.getToken().getAccessToken();
+            logger.info("adding bearer to header");
+//            String token = Base64Utils.encodeToString((this.username + ":" + this.password).getBytes(StandardCharsets.UTF_8));
+            request.getHeaders().add("Authorization", "Bearer " + accessToken);
+            request.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+            //            retu            request.getHeaders().setContentType();rn execution.execute(request, body);
         }else {
-            logger.info("oxsession is null");
-        }
-        if (servletRequest.getParameterMap().containsKey(REFFERAL_CODE)) {
-
-            logger.info("OX Session Filter was called");
-            String ref = servletRequest.getParameter(REFFERAL_CODE);
-            oxsesion.setRefCode(ref);
-            logger.info("Found Parameter "+REFFERAL_CODE+ " with value : ["+ref+"]");
+            logger.info("not intercepting cause user is not authenticated");
         }
 
-        if (servletRequest.getParameterMap().containsKey(BONUS_CODE)) {
 
-            logger.info("OX Session Filter was called");
-            String bonus = servletRequest.getParameter(BONUS_CODE);
-            oxsesion.setBonusCode(bonus);
-            logger.info("Found Parameter "+BONUS_CODE+ " with value : ["+bonus+"]");
-        }
-
-        if (servletRequest.getParameterMap().containsKey(GIFT_CODE)) {
-
-            logger.info("OX Session Filter was called");
-            String bonus = servletRequest.getParameter(GIFT_CODE);
-            oxsesion.setGiftCode(bonus);
-            logger.info("Found Parameter "+GIFT_CODE+ " with value : ["+bonus+"]");
-        }
-
-        if (servletRequest.getParameterMap().containsKey(REFFERAL_ID)) {
-
-            logger.info("OX Session Filter was called");
-            String refid = servletRequest.getParameter(REFFERAL_ID);
-            oxsesion.setRefId(refid);
-            logger.info("Found Parameter "+REFFERAL_ID+ " with value : ["+refid+"]");
-        }
-
-        filterChain.doFilter(servletRequest,servletResponse);
+        return execution.execute(request, body);
     }
 }
