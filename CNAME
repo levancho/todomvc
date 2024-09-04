@@ -1,20 +1,34 @@
-todomvc.com
-
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, ReactNode } from 'react';
 import axios from 'axios';
 import NarrativeControl from './NarrativeControl'; // Assuming this is the component for controls
 
-const DynamicRender = ({ clientid }) => {
-  const [narrativeText, setNarrativeText] = useState('');
-  const [controls, setControls] = useState([]);
-  const [renderedContent, setRenderedContent] = useState([]);
+// Define the types for control objects
+interface Control {
+  name: string;
+  value: string;
+}
+
+// Define the props type for the component
+interface DynamicRenderProps {
+  clientid: string;
+}
+
+// Define the response type from the API
+interface NarrativeResponse {
+  text: string;
+  controls: Control[];
+}
+
+const DynamicRender: React.FC<DynamicRenderProps> = ({ clientid }) => {
+  const [narrativeText, setNarrativeText] = useState<string>('');
+  const [controls, setControls] = useState<Control[]>([]);
+  const [renderedContent, setRenderedContent] = useState<ReactNode[]>([]);
 
   useEffect(() => {
     // Fetch narrative text and controls from the API
     const fetchData = async () => {
       try {
-        const response = await axios.get(`/api/narrative/${clientid}`); // Replace with your API endpoint
+        const response = await axios.get<NarrativeResponse>(`/api/narrative/${clientid}`); // Replace with your API endpoint
         const { text, controls } = response.data;
 
         // Set the narrative text and controls
@@ -35,13 +49,13 @@ const DynamicRender = ({ clientid }) => {
   }, [clientid]);
 
   // Function to process the narrative and replace tokens with JSX elements
-  const processNarrative = (text, controls) => {
-    const parts = [];
+  const processNarrative = (text: string, controls: Control[]): ReactNode[] => {
+    const parts: ReactNode[] = [];
     let lastIndex = 0;
 
     // Regex to match the full paragraph blocks, starting with __P_ and ending with __P__
     const paragraphRegex = /__P_([\w_]+)__([\s\S]*?)__P__/g;
-    let match;
+    let match: RegExpExecArray | null;
 
     // Iterate over all matches (each match is a full paragraph)
     while ((match = paragraphRegex.exec(text)) !== null) {
@@ -71,11 +85,11 @@ const DynamicRender = ({ clientid }) => {
   };
 
   // Function to replace control tokens like __control_name__ inside the paragraph content
-  const processControlTokens = (text, controls) => {
+  const processControlTokens = (text: string, controls: Control[]): ReactNode => {
     const regex = /__(\w+)__/g;
-    const parts = [];
+    const parts: ReactNode[] = [];
     let lastIndex = 0;
-    let match;
+    let match: RegExpExecArray | null;
 
     // Iterate over control matches within the text
     while ((match = regex.exec(text)) !== null) {
@@ -87,7 +101,7 @@ const DynamicRender = ({ clientid }) => {
       }
 
       // Replace the control token with the appropriate NarrativeControl component
-      const control = controls.find(control => control.name === `__${controlName}__`);
+      const control = controls.find((control) => control.name === `__${controlName}__`);
       if (control) {
         parts.push(
           <React.Fragment key={control.name}>
