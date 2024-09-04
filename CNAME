@@ -1,1 +1,113 @@
 todomvc.com
+
+
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import NarrativeControl from './NarrativeControl'; // Assuming this is the component for controls
+
+const DynamicRender = ({ clientid }) => {
+  const [narrativeText, setNarrativeText] = useState('');
+  const [controls, setControls] = useState([]);
+  const [renderedContent, setRenderedContent] = useState([]);
+
+  useEffect(() => {
+    // Fetch narrative text and controls from the API
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(`/api/narrative/${clientid}`); // Replace with your API endpoint
+        const { text, controls } = response.data;
+
+        // Set the narrative text and controls
+        setNarrativeText(text);
+        setControls(controls);
+
+        // Process the text and controls to dynamically create JSX
+        const processedContent = processNarrative(text, controls);
+        setRenderedContent(processedContent);
+      } catch (error) {
+        console.error('Error fetching narrative data:', error);
+      }
+    };
+
+    if (clientid) {
+      fetchData();
+    }
+  }, [clientid]);
+
+  // Function to process the narrative and replace tokens with JSX elements
+  const processNarrative = (text, controls) => {
+    const parts = [];
+    let lastIndex = 0;
+
+    // Regex to match the full paragraph blocks, starting with __P_ and ending with __P__
+    const paragraphRegex = /__P_([\w_]+)__([\s\S]*?)__P__/g;
+    let match;
+
+    // Iterate over all matches (each match is a full paragraph)
+    while ((match = paragraphRegex.exec(text)) !== null) {
+      const [fullMatch, paragraphId, paragraphContent] = match;
+
+      // Push the text before the paragraph starts into the parts array
+      if (match.index > lastIndex) {
+        parts.push(text.slice(lastIndex, match.index));
+      }
+
+      // Start a new paragraph with <p id="paragraphId"> and process controls inside
+      parts.push(
+        <p key={paragraphId} id={paragraphId}>
+          {processControlTokens(paragraphContent, controls)}
+        </p>
+      );
+
+      lastIndex = paragraphRegex.lastIndex;
+    }
+
+    // Push any remaining text after the last paragraph
+    if (lastIndex < text.length) {
+      parts.push(text.slice(lastIndex));
+    }
+
+    return parts;
+  };
+
+  // Function to replace control tokens like __control_name__ inside the paragraph content
+  const processControlTokens = (text, controls) => {
+    const regex = /__(\w+)__/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    // Iterate over control matches within the text
+    while ((match = regex.exec(text)) !== null) {
+      const [token, controlName] = match;
+
+      // Push the text before the control token
+      if (match.index > lastIndex) {
+        parts.push(text.slice(lastIndex, match.index));
+      }
+
+      // Replace the control token with the appropriate NarrativeControl component
+      const control = controls.find(control => control.name === `__${controlName}__`);
+      if (control) {
+        parts.push(
+          <React.Fragment key={control.name}>
+            <NarrativeControl value={control.value} />
+          </React.Fragment>
+        );
+      }
+
+      lastIndex = regex.lastIndex;
+    }
+
+    // Push any remaining text after the last control
+    if (lastIndex < text.length) {
+      parts.push(text.slice(lastIndex));
+    }
+
+    return <React.Fragment>{parts}</React.Fragment>;
+  };
+
+  return <div>{renderedContent}</div>;
+};
+
+export default DynamicRender;
