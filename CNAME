@@ -1,127 +1,31 @@
-import React, { useState, useEffect, ReactNode } from 'react';
-import axios from 'axios';
-import NarrativeControl from './NarrativeControl'; // Assuming this is the component for controls
+import React, { useState } from 'react';
 
-// Define the types for control objects
-interface Control {
-  name: string;
-  value: string;
-}
+const ExampleComponent = () => {
+  const [data, setData] = useState([{ account: "12334", body: "ddsde" }]);
 
-// Define the props type for the component
-interface DynamicRenderProps {
-  clientid: string;
-}
-
-// Define the response type from the API
-interface NarrativeResponse {
-  text: string;
-  controls: Control[];
-}
-
-const DynamicRender: React.FC<DynamicRenderProps> = ({ clientid }) => {
-  const [narrativeText, setNarrativeText] = useState<string>('');
-  const [controls, setControls] = useState<Control[]>([]);
-  const [renderedContent, setRenderedContent] = useState<ReactNode[]>([]);
-
-  useEffect(() => {
-    // Fetch narrative text and controls from the API
-    const fetchData = async () => {
-      try {
-        const response = await axios.get<NarrativeResponse>(`/api/narrative/${clientid}`); // Replace with your API endpoint
-        const { text, controls } = response.data;
-
-        // Set the narrative text and controls
-        setNarrativeText(text);
-        setControls(controls);
-
-        // Process the text and controls to dynamically create JSX
-        const processedContent = processNarrative(text, controls);
-        setRenderedContent(processedContent);
-      } catch (error) {
-        console.error('Error fetching narrative data:', error);
-      }
-    };
-
-    if (clientid) {
-      fetchData();
-    }
-  }, [clientid]);
-
-  // Function to process the narrative and replace tokens with JSX elements
-  const processNarrative = (text: string, controls: Control[]): ReactNode[] => {
-    const parts: ReactNode[] = [];
-    let lastIndex = 0;
-
-    // Regex to match the full paragraph blocks, starting with __P_ and ending with __P__
-    const paragraphRegex = /__P_([\w_]+)__([\s\S]*?)__P__/g;
-    let match: RegExpExecArray | null;
-
-    // Iterate over all matches (each match is a full paragraph)
-    while ((match = paragraphRegex.exec(text)) !== null) {
-      const [fullMatch, paragraphId, paragraphContent] = match;
-
-      // Push the text before the paragraph starts into the parts array
-      if (match.index > lastIndex) {
-        parts.push(text.slice(lastIndex, match.index));
-      }
-
-      // Start a new paragraph with <p id="paragraphId"> and process controls inside
-      parts.push(
-        <p key={paragraphId} id={paragraphId}>
-          {processControlTokens(paragraphContent, controls)}
-        </p>
-      );
-
-      lastIndex = paragraphRegex.lastIndex;
-    }
-
-    // Push any remaining text after the last paragraph
-    if (lastIndex < text.length) {
-      parts.push(text.slice(lastIndex));
-    }
-
-    return parts;
+  const addItem = (account) => {
+    const newItem = { account, body: `Generated body for account ${account}` }; // Body generated dynamically
+    setData((prevData) => [...prevData, newItem]);
   };
 
-  // Function to replace control tokens like __control_name__ inside the paragraph content
-  const processControlTokens = (text: string, controls: Control[]): ReactNode => {
-    const regex = /__(\w+)__/g;
-    const parts: ReactNode[] = [];
-    let lastIndex = 0;
-    let match: RegExpExecArray | null;
-
-    // Iterate over control matches within the text
-    while ((match = regex.exec(text)) !== null) {
-      const [token, controlName] = match;
-
-      // Push the text before the control token
-      if (match.index > lastIndex) {
-        parts.push(text.slice(lastIndex, match.index));
-      }
-
-      // Replace the control token with the appropriate NarrativeControl component
-      const control = controls.find((control) => control.name === `__${controlName}__`);
-      if (control) {
-        parts.push(
-          <React.Fragment key={control.name}>
-            <NarrativeControl value={control.value} />
-          </React.Fragment>
-        );
-      }
-
-      lastIndex = regex.lastIndex;
-    }
-
-    // Push any remaining text after the last control
-    if (lastIndex < text.length) {
-      parts.push(text.slice(lastIndex));
-    }
-
-    return <React.Fragment>{parts}</React.Fragment>;
+  const removeItem = (accountToRemove) => {
+    setData((prevData) => prevData.filter(item => item.account !== accountToRemove));
   };
 
-  return <div>{renderedContent}</div>;
+  return (
+    <div>
+      <button onClick={() => addItem("56789")}>Add Item</button>
+      <button onClick={() => removeItem("12334")}>Remove Item</button>
+      <div>
+        {data.map((item, index) => (
+          <div key={index}>
+            <h3>Account: {item.account}</h3>
+            <p>Body: {item.body}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 };
 
-export default DynamicRender;
+export default ExampleComponent;
