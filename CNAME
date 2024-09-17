@@ -1,31 +1,41 @@
-import React, { useState } from 'react';
 
-const ExampleComponent = () => {
-  const [data, setData] = useState([{ account: "12334", body: "ddsde" }]);
+package com.example.controller;
 
-  const addItem = (account) => {
-    const newItem = { account, body: `Generated body for account ${account}` }; // Body generated dynamically
-    setData((prevData) => [...prevData, newItem]);
-  };
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-  const removeItem = (accountToRemove) => {
-    setData((prevData) => prevData.filter(item => item.account !== accountToRemove));
-  };
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
 
-  return (
-    <div>
-      <button onClick={() => addItem("56789")}>Add Item</button>
-      <button onClick={() => removeItem("12334")}>Remove Item</button>
-      <div>
-        {data.map((item, index) => (
-          <div key={index}>
-            <h3>Account: {item.account}</h3>
-            <p>Body: {item.body}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
+@Controller
+public class JsProxyController {
 
-export default ExampleComponent;
+    @GetMapping("/load-js")
+    public void loadJavaScript(@RequestParam("url") String jsUrl, HttpServletResponse response) throws IOException {
+        // Set response headers for JavaScript
+        response.setContentType("application/javascript");
+
+        // Create an HTTP client to fetch the JS file
+        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+            // Execute a GET request to the provided URL
+            HttpGet request = new HttpGet(jsUrl);
+            HttpResponse httpResponse = httpClient.execute(request);
+
+            // Get the input stream from the response entity
+            InputStream inputStream = httpResponse.getEntity().getContent();
+
+            // Copy the input stream directly to the response's output stream using IOUtils.copy
+            IOUtils.copy(inputStream, response.getOutputStream());
+
+            // Ensure the output stream is flushed
+            response.flushBuffer();
+        }
+    }
+}
