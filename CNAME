@@ -63,3 +63,6 @@ public class ChatCompletionController {
         });
     }
 }
+
+InputStream inputStream = new ByteArrayInputStream(messageContent.getBytes(StandardCharsets.UTF_8));
+
