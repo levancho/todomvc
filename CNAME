@@ -1,41 +1,65 @@
-
-package com.example.controller;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.springframework.stereotype.Controller;
+import com.azure.ai.openai.OpenAIClient;
+import com.azure.ai.openai.models.ChatCompletionsOptions;
+import com.azure.ai.openai.models.ChatMessage;
+import com.azure.ai.openai.models.ChatRole;
+import com.azure.core.credential.AzureKeyCredential;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
-@Controller
-public class JsProxyController {
+import reactor.core.publisher.Flux;
 
-    @GetMapping("/load-js")
-    public void loadJavaScript(@RequestParam("url") String jsUrl, HttpServletResponse response) throws IOException {
-        // Set response headers for JavaScript
-        response.setContentType("application/javascript");
+@RestController
+public class ChatCompletionController {
 
-        // Create an HTTP client to fetch the JS file
-        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-            // Execute a GET request to the provided URL
-            HttpGet request = new HttpGet(jsUrl);
-            HttpResponse httpResponse = httpClient.execute(request);
+    // Initialize the Azure OpenAI client with your credentials
+    private final OpenAIClient openAIClient = new OpenAIClient.Builder()
+            .credential(new AzureKeyCredential("your-azure-api-key"))
+            .endpoint("https://your-resource-name.openai.azure.com/")
+            .buildClient();
 
-            // Get the input stream from the response entity
-            InputStream inputStream = httpResponse.getEntity().getContent();
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
-            // Copy the input stream directly to the response's output stream using IOUtils.copy
-            IOUtils.copy(inputStream, response.getOutputStream());
+    @GetMapping(value = "/chat-stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<String> streamChatCompletion() {
+        return Flux.create(sink -> {
+            executor.submit(() -> {
+                try {
+                    // Prepare your chat messages
+                    List<ChatMessage> chatMessages = new ArrayList<>();
+                    chatMessages.add(new ChatMessage(ChatRole.SYSTEM).setContent("You are a helpful assistant."));
+                    chatMessages.add(new ChatMessage(ChatRole.USER).setContent("Hello, how can I use Azure OpenAI?"));
 
-            // Ensure the output stream is flushed
-            response.flushBuffer();
-        }
+                    // Set up chat completion options
+                    ChatCompletionsOptions options = new ChatCompletionsOptions(chatMessages);
+
+                    // Start the streaming process (Pseudo-code, replace with your SDK's streaming implementation)
+                    openAIClient.streamChatCompletion("deploymentName", "gpt-35-turbo", "0301", options, completion -> {
+                        // Simulate streaming behavior
+                        String chunk = completion.getMessage().getContent(); // get each generated chunk
+                        sink.next("Assistant: " + chunk);
+                        
+                        try {
+                            // Simulate a streaming delay
+                            TimeUnit.MILLISECONDS.sleep(500);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+                    });
+
+                    // Complete the stream
+                    sink.complete();
+                } catch (Exception e) {
+                    sink.error(e);
+                }
+            });
+        });
     }
 }
