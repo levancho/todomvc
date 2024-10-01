@@ -1,184 +1,64 @@
-// Container Wrapper Styles
-.chat-container-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh; // Full height to ensure it covers the entire screen
-  margin: 0; 
-  padding: 0;
-  background-color: #f5f5f5;
-  box-sizing: border-box;
-}
+ const [messages, setMessages] = useState([]);
+  const [inputValue, setInputValue] = useState("");
 
-// Chat Container Styles
-.chat-container {
-  display: flex;
-  width: 100%;
-  max-width: 1200px; // Max width to fit larger screens
-  height: 100%; // Full height for the chat window
-  background-color: #fff;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
-  overflow: hidden;
-  position: relative;
-}
+  // Function to handle sending the message
+  const sendMessage = () => {
+    if (inputValue.trim() === "") return; // Prevent sending empty messages
 
-// Chat Side Styles (Optional for adding features)
-.chat-side {
-  width: 25%; // Adjust as needed
-  background-color: #f0f0f0;
-  border-right: 1px solid #e0e0e0;
-  padding: 20px;
-  box-sizing: border-box;
-  display: none; // Hides the chat-side if not used
-}
+    // Add the user's message to the chat
+    const newMessage = {
+      content: inputValue,
+      role: "user",
+    };
+    setMessages([...messages, newMessage]);
 
-// Chat Body Styles
-.chat-body {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%; // Full height for the chat body
-}
+    // Clear the input field
+    setInputValue("");
 
-// Chat List (Messages) Styles
-.chat-list {
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
-  background-color: #fafafa;
-  
-  // Ensure the container scrolls correctly
-  max-height: calc(100vh - 100px);
-  
-  // Scrollbar styling
-  &::-webkit-scrollbar {
-    width: 8px;
-  }
+    // Simulate assistant's response (You can replace this with an API call)
+    setTimeout(() => {
+      const assistantResponse = {
+        content: `You said: ${newMessage.content}`,
+        role: "assistant",
+      };
+      setMessages((prevMessages) => [...prevMessages, assistantResponse]);
+    }, 1000); // Delay response by 1 second to simulate thinking time
+  };
 
-  &::-webkit-scrollbar-thumb {
-    background-color: #c1c1c1;
-    border-radius: 4px;
-  }
-
-  // Chat Bubble Styles
-  .chat-bubble {
-    margin-bottom: 10px;
-    padding: 10px;
-    border-radius: 10px;
-    max-width: 70%;
-    word-wrap: break-word;
-    display: inline-block;
-    clear: both; // Ensures each bubble is in its own line
-  }
-
-  .chat-bubble.user {
-    align-self: flex-end;
-    background-color: #007bff;
-    color: #fff;
-    margin-left: auto;
-    text-align: right;
-    border-radius: 10px 0 10px 10px;
-  }
-
-  .chat-bubble.assistant {
-    align-self: flex-start;
-    background-color: #e0e0e0;
-    color: #333;
-    text-align: left;
-    border-radius: 0 10px 10px 10px;
-  }
-}
-
-// Chat Input Styles
-.chat-input {
-  display: flex;
-  padding: 10px;
-  border-top: 1px solid #e0e0e0;
-  background-color: #fff;
-  position: sticky;
-  bottom: 0;
-  
-  input[type="text"] {
-    flex: 1;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    outline: none;
-    transition: border-color 0.3s;
-    
-    &:focus {
-      border-color: #007bff;
+  // Handle pressing Enter key to send the message
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      sendMessage();
     }
-  }
+  };
 
-  button {
-    margin-left: 10px;
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
+  return (
+    <div className="chat-container-wrapper">
+      <div className="chat-container">
+        <div className="chat-body">
+          <div className="chat-list">
+            {messages.map((msg, index) => (
+              <div
+                key={index}
+                className={`chat-message ${msg.role}`}
+              >
+                <div className={`chat-bubble ${msg.role}`} dangerouslySetInnerHTML={{ __html: msg.content }}></div>
+              </div>
+            ))}
+          </div>
 
-    &:hover {
-      background-color: #0056b3;
-    }
-  }
-}
-
-
-----
-
-
-<div class="chat-container-wrapper">
-    <div class="chat-container">
-        <div class="chat-body">
-            <div class="chat-list">
-                <!-- User's messages aligned to the right -->
-                <div class="chat-message user">
-                    <div class="chat-bubble user">
-                        Hello! How do I get started with using this chat?
-                    </div>
-                </div>
-
-                <!-- Assistant's messages aligned to the left -->
-                <div class="chat-message assistant">
-                    <div class="chat-bubble assistant">
-                        Welcome! Just type your message below and hit "Enter" or click the button to send.
-                    </div>
-                </div>
-
-                <div class="chat-message user">
-                    <div class="chat-bubble user">
-                        Can you tell me more about how this chat interface works?
-                    </div>
-                </div>
-
-                <div class="chat-message assistant">
-                    <div class="chat-bubble assistant">
-                        Sure! You can see a history of messages here, and new messages will appear at the bottom.
-                    </div>
-                </div>
-
-                <div class="chat-message user">
-                    <div class="chat-bubble user">
-                        That sounds great! Thanks for the help.
-                    </div>
-                </div>
-
-                <div class="chat-message assistant">
-                    <div class="chat-bubble assistant">
-                        You're welcome! Feel free to ask anything else.
-                    </div>
-                </div>
-            </div>
-
-            <div class="chat-input">
-                <input type="text" placeholder="Type your message here..." />
-                <button>Send</button>
-            </div>
+          <div className="chat-input">
+            <input
+              type="text"
+              placeholder="Type your message here..."
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyPress={handleKeyPress}
+            />
+            <button onClick={sendMessage}>Send</button>
+          </div>
         </div>
+      </div>
     </div>
-</div>
+  );
+};
