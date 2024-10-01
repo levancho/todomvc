@@ -1,57 +1,69 @@
-// Chat List (Messages) Styles
-.chat-list {
-  flex: 1;
-  padding: 10px 20px;
-  overflow-y: auto; // Enables scrolling if messages exceed available space
-  background-color: #fafafa;
-  display: flex;
-  flex-direction: column-reverse; // Display messages starting from the bottom
-  justify-content: flex-end; // Make sure messages are anchored at the bottom
-  align-items: flex-start; // Default alignment for assistant messages on the left
-  
-  &::-webkit-scrollbar {
-    width: 8px;
-  }
+import React, { useState } from 'react';
 
-  &::-webkit-scrollbar-thumb {
-    background-color: #c1c1c1;
-    border-radius: 4px;
-  }
+const ChatComponent = () => {
+  const [messages, setMessages] = useState([]);
+  const [inputValue, setInputValue] = useState("");
 
-  // Chat Bubble Container
-  .chat-message {
-    display: flex;
-    margin-bottom: 10px; // Space between messages
-    width: 100%; // Ensure it spans the full width of the chat list
-  }
+  // Function to handle sending the message
+  const sendMessage = () => {
+    if (inputValue.trim() === "") return; // Prevent sending empty messages
 
-  .chat-message.user {
-    justify-content: flex-end; // Aligns user's message to the right
-  }
+    // Add the user's message to the chat
+    const newMessage = {
+      content: inputValue,
+      role: "user",
+    };
+    setMessages([...messages, newMessage]); // Append message to the end of the list
 
-  .chat-message.assistant {
-    justify-content: flex-start; // Aligns assistant's message to the left
-  }
+    // Clear the input field
+    setInputValue("");
 
-  .chat-bubble {
-    padding: 10px;
-    border-radius: 10px;
-    max-width: 70%;
-    word-wrap: break-word;
-    clear: both; // Ensures each bubble takes a new line
-  }
+    // Simulate assistant's response
+    setTimeout(() => {
+      const assistantResponse = {
+        content: `You said: ${newMessage.content}`,
+        role: "assistant",
+      };
+      setMessages((prevMessages) => [...prevMessages, assistantResponse]); // Append response to the end
+    }, 1000); // Delay response by 1 second
+  };
 
-  .chat-bubble.user {
-    background-color: #007bff;
-    color: #fff;
-    border-radius: 10px 0 10px 10px;
-    align-self: flex-end; // Ensures user bubble sticks to the right
-  }
+  // Handle pressing Enter key to send the message
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      sendMessage();
+    }
+  };
 
-  .chat-bubble.assistant {
-    background-color: #e0e0e0;
-    color: #333;
-    border-radius: 0 10px 10px 10px;
-    align-self: flex-start; // Ensures assistant bubble sticks to the left
-  }
-}
+  return (
+    <div className="chat-container-wrapper">
+      <div className="chat-container">
+        <div className="chat-body">
+          <div className="chat-list">
+            {messages.map((msg, index) => (
+              <div
+                key={index}
+                className={`chat-message ${msg.role}`}
+              >
+                <div className={`chat-bubble ${msg.role}`} dangerouslySetInnerHTML={{ __html: msg.content }}></div>
+              </div>
+            ))}
+          </div>
+
+          <div className="chat-input">
+            <input
+              type="text"
+              placeholder="Type your message here..."
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyPress={handleKeyPress}
+            />
+            <button onClick={sendMessage}>Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ChatComponent;
