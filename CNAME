@@ -1,35 +1,90 @@
-// Dot Animation Styles
-.typing-indicator {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: absolute;
-  bottom: 10px; // Positioned at the bottom of chat-list
-  width: 100%; // Center it within chat-list
-  height: 20px; // Adjust as needed
-  pointer-events: none; // Makes sure it doesn't interfere with clicks
+import React, { useState, useEffect, useRef } from 'react';
+
+// Define the type for chat messages
+interface ChatMessage {
+  content: string;
+  role: 'user' | 'assistant';
 }
 
-.dot {
-  width: 8px;
-  height: 8px;
-  margin: 0 3px;
-  background-color: #b81717; // Use UBS red for consistency
-  border-radius: 50%;
-  animation: bounce 0.6s infinite alternate;
-}
+const ChatComponent: React.FC = () => {
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [inputValue, setInputValue] = useState<string>("");
+  const [isTyping, setIsTyping] = useState<boolean>(false); // State for managing the typing indicator
+  const chatListRef = useRef<HTMLDivElement | null>(null);
 
-.dot:nth-child(2) {
-  animation-delay: 0.2s;
-}
+  // Function to handle sending the message
+  const sendMessage = () => {
+    if (inputValue.trim() === "") return; // Prevent sending empty messages
 
-.dot:nth-child(3) {
-  animation-delay: 0.4s;
-}
+    // Add the user's message to the chat
+    const newMessage: ChatMessage = {
+      content: inputValue,
+      role: "user",
+    };
+    setMessages([...messages, newMessage]); // Append message to the end of the list
 
-@keyframes bounce {
-  to {
-    opacity: 0.3;
-    transform: translateY(-5px);
-  }
-}
+    // Clear the input field
+    setInputValue("");
+
+    // Set the typing indicator
+    setIsTyping(true);
+
+    // Simulate assistant's response
+    setTimeout(() => {
+      const assistantResponse: ChatMessage = {
+        content: `You said: ${newMessage.content}`,
+        role: "assistant",
+      };
+      setMessages((prevMessages) => [...prevMessages, assistantResponse]); // Append response to the end
+      setIsTyping(false); // Remove the typing indicator
+    }, 2000); // Delay response by 2 seconds
+  };
+
+  // Handle pressing Enter key to send the message
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      sendMessage();
+    }
+  };
+
+  return (
+    <div className="chat-container-wrapper">
+      <div className="chat-container">
+        <div className="chat-body">
+          <div className="chat-list" ref={chatListRef}>
+            {messages.map((msg, index) => (
+              <div
+                key={index}
+                className={`chat-message ${msg.role}`}
+              >
+                <div className={`chat-bubble ${msg.role}`} dangerouslySetInnerHTML={{ __html: msg.content }}></div>
+              </div>
+            ))}
+
+            {/* Typing Indicator */}
+            {isTyping && (
+              <div className="typing-indicator">
+                <div className="dot"></div>
+                <div className="dot"></div>
+                <div className="dot"></div>
+              </div>
+            )}
+          </div>
+
+          <div className="chat-input">
+            <input
+              type="text"
+              placeholder="Type your message here..."
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyPress={handleKeyPress}
+            />
+            <button onClick={sendMessage}>Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ChatComponent;
