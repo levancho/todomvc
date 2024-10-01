@@ -1,68 +1,157 @@
-import com.azure.ai.openai.OpenAIClient;
-import com.azure.ai.openai.models.ChatCompletionsOptions;
-import com.azure.ai.openai.models.ChatMessage;
-import com.azure.ai.openai.models.ChatRole;
-import com.azure.core.credential.AzureKeyCredential;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
-
-import reactor.core.publisher.Flux;
-
-@RestController
-public class ChatCompletionController {
-
-    // Initialize the Azure OpenAI client with your credentials
-    private final OpenAIClient openAIClient = new OpenAIClient.Builder()
-            .credential(new AzureKeyCredential("your-azure-api-key"))
-            .endpoint("https://your-resource-name.openai.azure.com/")
-            .buildClient();
-
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
-
-    @GetMapping(value = "/chat-stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> streamChatCompletion() {
-        return Flux.create(sink -> {
-            executor.submit(() -> {
-                try {
-                    // Prepare your chat messages
-                    List<ChatMessage> chatMessages = new ArrayList<>();
-                    chatMessages.add(new ChatMessage(ChatRole.SYSTEM).setContent("You are a helpful assistant."));
-                    chatMessages.add(new ChatMessage(ChatRole.USER).setContent("Hello, how can I use Azure OpenAI?"));
-
-                    // Set up chat completion options
-                    ChatCompletionsOptions options = new ChatCompletionsOptions(chatMessages);
-
-                    // Start the streaming process (Pseudo-code, replace with your SDK's streaming implementation)
-                    openAIClient.streamChatCompletion("deploymentName", "gpt-35-turbo", "0301", options, completion -> {
-                        // Simulate streaming behavior
-                        String chunk = completion.getMessage().getContent(); // get each generated chunk
-                        sink.next("Assistant: " + chunk);
-                        
-                        try {
-                            // Simulate a streaming delay
-                            TimeUnit.MILLISECONDS.sleep(500);
-                        } catch (InterruptedException e) {
-                            Thread.currentThread().interrupt();
-                        }
-                    });
-
-                    // Complete the stream
-                    sink.complete();
-                } catch (Exception e) {
-                    sink.error(e);
-                }
-            });
-        });
-    }
+// Container Wrapper Styles
+.chat-container-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; // Full height
+  background-color: #f5f5f5;
+  padding: 20px;
 }
 
-InputStream inputStream = new ByteArrayInputStream(messageContent.getBytes(StandardCharsets.UTF_8));
+// Chat Container Styles
+.chat-container {
+  display: flex;
+  width: 100%;
+  max-width: 900px; // Limits the max width for larger screens
+  height: 80vh; // Adjust height to your preference
+  background-color: #fff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+// Chat Side Styles (if you plan to add something here in the future)
+.chat-side {
+  width: 30%; // Adjust as needed
+  background-color: #f0f0f0;
+  border-right: 1px solid #e0e0e0;
+  padding: 20px;
+}
+
+// Chat Body Styles
+.chat-body {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+// Chat List (Messages) Styles
+.chat-list {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  background-color: #fafafa;
+  
+  // Scrollbar styling
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: #c1c1c1;
+    border-radius: 4px;
+  }
+
+  // Chat Bubble Styles
+  .chat-bubble {
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 10px;
+    max-width: 70%;
+    word-wrap: break-word;
+  }
+
+  .chat-bubble.user {
+    align-self: flex-end;
+    background-color: #d1e7dd;
+    color: #1a3c40;
+  }
+
+  .chat-bubble.assistant {
+    align-self: flex-start;
+    background-color: #e0e0e0;
+    color: #333;
+  }
+}
+
+// Chat Input Styles
+.chat-input {
+  display: flex;
+  padding: 10px;
+  border-top: 1px solid #e0e0e0;
+  background-color: #fff;
+  
+  input[type="text"] {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    outline: none;
+    transition: border-color 0.3s;
+    
+    &:focus {
+      border-color: #007bff;
+    }
+  }
+
+  button {
+    margin-left: 10px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+
+    &:hover {
+      background-color: #0056b3;
+    }
+  }
+}
+
+
+<div class="chat-container-wrapper">
+    <div class="chat-container">
+        <div class="chat-side">
+            <!-- You can add user information or options here -->
+            <h3>User Info</h3>
+        </div>
+        <div class="chat-body">
+            <div class="chat-list">
+                <!-- Example User Messages -->
+                <div class="chat-bubble user">
+                    Hello! How do I get started with using this chat?
+                </div>
+                
+                <!-- Example Assistant Messages -->
+                <div class="chat-bubble assistant">
+                    Welcome! Just type your message below and hit "Enter" or click the button to send.
+                </div>
+
+                <div class="chat-bubble user">
+                    Can you tell me more about how this chat interface works?
+                </div>
+                
+                <div class="chat-bubble assistant">
+                    Sure! You can see a history of messages here, and new messages will appear at the bottom.
+                </div>
+
+                <div class="chat-bubble user">
+                    That sounds great! Thanks for the help.
+                </div>
+                
+                <div class="chat-bubble assistant">
+                    You're welcome! Feel free to ask anything else.
+                </div>
+            </div>
+
+            <div class="chat-input">
+                <input type="text" placeholder="Type your message here..." />
+                <button>Send</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
