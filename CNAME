@@ -127,3 +127,58 @@
     }
   }
 }
+
+
+----
+
+
+<div class="chat-container-wrapper">
+    <div class="chat-container">
+        <div class="chat-body">
+            <div class="chat-list">
+                <!-- User's messages aligned to the right -->
+                <div class="chat-message user">
+                    <div class="chat-bubble user">
+                        Hello! How do I get started with using this chat?
+                    </div>
+                </div>
+
+                <!-- Assistant's messages aligned to the left -->
+                <div class="chat-message assistant">
+                    <div class="chat-bubble assistant">
+                        Welcome! Just type your message below and hit "Enter" or click the button to send.
+                    </div>
+                </div>
+
+                <div class="chat-message user">
+                    <div class="chat-bubble user">
+                        Can you tell me more about how this chat interface works?
+                    </div>
+                </div>
+
+                <div class="chat-message assistant">
+                    <div class="chat-bubble assistant">
+                        Sure! You can see a history of messages here, and new messages will appear at the bottom.
+                    </div>
+                </div>
+
+                <div class="chat-message user">
+                    <div class="chat-bubble user">
+                        That sounds great! Thanks for the help.
+                    </div>
+                </div>
+
+                <div class="chat-message assistant">
+                    <div class="chat-bubble assistant">
+                        You're welcome! Feel free to ask anything else.
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-input">
+                <input type="text" placeholder="Type your message here..." />
+                <button>Send</button>
+            </div>
+        </div>
+    </div>
+</div>
