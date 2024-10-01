@@ -1,4 +1,4 @@
- // Container Wrapper Styles
+// Container Wrapper Styles
 .chat-container-wrapper {
   display: flex;
   justify-content: center;
@@ -127,51 +127,3 @@
     }
   }
 }
-
-
-
-<div class="chat-container-wrapper">
-    <div class="chat-container">
-        <div class="chat-side">
-            <!-- You can add user information or options here if needed -->
-            <h3>User Info</h3>
-        </div>
-        <div class="chat-body">
-            <div class="chat-list">
-                <!-- Example User Messages -->
-                <div class="chat-bubble user">
-                    Hello! How do I get started with using this chat?
-                </div>
-                
-                <!-- Example Assistant Messages -->
-                <div class="chat-bubble assistant">
-                    Welcome! Just type your message below and hit "Enter" or click the button to send.
-                </div>
-
-                <div class="chat-bubble user">
-                    Can you tell me more about how this chat interface works?
-                </div>
-                
-                <div class="chat-bubble assistant">
-                    Sure! You can see a history of messages here, and new messages will appear at the bottom.
-                </div>
-
-                <div class="chat-bubble user">
-                    That sounds great! Thanks for the help.
-                </div>
-                
-                <div class="chat-bubble assistant">
-                    You're welcome! Feel free to ask anything else.
-                </div>
-            </div>
-
-            <div class="chat-input">
-                <input type="text" placeholder="Type your message here..." />
-                <button>Send</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-
