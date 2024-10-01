@@ -1,8 +1,127 @@
-  const chatListRef = useRef(null);
+// Container Wrapper Styles
+.chat-container-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; // Full height of the viewport
+  margin: 0;
+  padding: 0;
+  background-color: #f5f5f5;
+  box-sizing: border-box;
+}
 
-  // Scroll to the bottom whenever messages change
-  useEffect(() => {
-    if (chatListRef.current) {
-      chatListRef.current.scrollTop = chatListRef.current.scrollHeight;
+// Chat Container Styles
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1200px; // Adjusted width to make the chat window wider
+  height: 90vh; // Adjust height to fit within the viewport
+  background-color: #fff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+// Chat Body Styles
+.chat-body {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%; // Make sure chat body fills available space
+}
+
+// Chat List (Messages) Styles
+.chat-list {
+  flex: 1;
+  padding: 10px 20px;
+  overflow-y: auto; // Enables scrolling if messages exceed available space
+  background-color: #fafafa;
+  display: flex;
+  flex-direction: column; // Display messages in a natural order (top to bottom)
+  justify-content: flex-start; // Ensure messages start from the top
+  align-items: flex-start; // Align assistant messages to the left by default
+  
+  // Scrollbar styling
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: #c1c1c1;
+    border-radius: 4px;
+  }
+
+  // Chat Bubble Container
+  .chat-message {
+    display: flex;
+    margin-bottom: 10px; // Space between messages
+    width: 100%; // Ensure it spans the full width of the chat list
+  }
+
+  .chat-message.user {
+    justify-content: flex-end; // Aligns user's message to the right
+  }
+
+  .chat-message.assistant {
+    justify-content: flex-start; // Aligns assistant's message to the left
+  }
+
+  .chat-bubble {
+    padding: 10px;
+    border-radius: 10px;
+    max-width: 70%; // Limits bubble width for better readability
+    word-wrap: break-word;
+    clear: both; // Ensures each bubble takes a new line
+  }
+
+  // User Message Styling (UBS Red)
+  .chat-bubble.user {
+    background-color: #e21a1a; // UBS Red
+    color: #fff;
+    border-radius: 10px 0 10px 10px;
+  }
+
+  // Assistant Message Styling (UBS Grey)
+  .chat-bubble.assistant {
+    background-color: #d3d3d3; // Grey similar to UBS grey tones
+    color: #333;
+    border-radius: 0 10px 10px 10px;
+  }
+}
+
+// Chat Input Styles
+.chat-input {
+  display: flex;
+  padding: 10px;
+  border-top: 1px solid #e0e0e0;
+  background-color: #fff;
+  
+  input[type="text"] {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    outline: none;
+    transition: border-color 0.3s;
+    
+    &:focus {
+      border-color: #e21a1a; // UBS Red for focus border
     }
-  }, [messages]); 
+  }
+
+  button {
+    margin-left: 10px;
+    padding: 10px 20px;
+    background-color: #e21a1a; // UBS Red for button background
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+
+    &:hover {
+      background-color: #b81717; // Darker red for hover state
+    }
+  }
+}
